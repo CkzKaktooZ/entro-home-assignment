@@ -27,6 +27,13 @@ class GithubController {
   async scanRepo(@Body() body: GitHubRepoAccessRequestDto): Promise<GitHubRepoScanResponseDto> {
     return this.service.scanRepo(body.owner, body.repo, body.token)
   }
+
+  @Post('get-branches')
+  @ApiBody({ type: GitHubRepoAccessRequestDto })
+  @ApiResponse({ status: 200, type: GitHubRepoScanResponseDto })
+  async getBranches(@Body() body: GitHubRepoAccessRequestDto) {
+    return this.service.getBranches(body.owner, body.repo, body.token)
+  }
 }
 
 export { GithubController }

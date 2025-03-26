@@ -43,7 +43,13 @@ class GitHubRepoScanResponseDto {
   foundSecrets?: string[]
 }
 
+class GitHubBranchesResponseDto {
+  @ApiProperty()
+  branches: String[]
+}
+
 export {
+  GitHubBranchesResponseDto,
   GitHubRepoAccessRequestDto,
   GitHubRepoAccessResponseDto,
   GitHubRepoScanResponseDto,

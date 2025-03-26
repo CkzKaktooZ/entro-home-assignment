@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { GitHubRepoAccessResponseDto, GitHubRepoScanResponseDto, GitHubTokenValidateResponseDto } from './dto/github.dto'
+import { GitHubBranchesResponseDto, GitHubRepoAccessResponseDto, GitHubRepoScanResponseDto, GitHubTokenValidateResponseDto } from './dto/github.dto'
 
 @Injectable()
 class GithubService {
   //AWS SECRETS REGEX
   private readonly AWS_KEY_REGEX = /(?:AKIA|ASIA|AIDA|AROA)[A-Z2-7]{16}/g
+  private readonly baseUrl = 'https://api.github.com'
   async validateToken(token: string): Promise<GitHubTokenValidateResponseDto> {
     if (!token) {
       return {
@@ -34,7 +35,7 @@ class GithubService {
   }
 
   async checkRepoAccess(token: string, owner: string, repo: string): Promise<GitHubRepoAccessResponseDto> {
-    const url = `https://api.github.com/repos/${owner}/${repo}`
+    const url = `${this.baseUrl}/${owner}/${repo}`
 
     try {
       const response = await fetch(url, {
@@ -81,7 +82,7 @@ class GithubService {
   }
 
   async getRepoFiles(owner: string, repo: string, token: string, path = ''): Promise<string[]> {
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
+    const url = `${this.baseUrl}/${owner}/${repo}/contents/${path}`
     const response = await fetch(url, {
       headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' },
     })
@@ -106,7 +107,7 @@ class GithubService {
   }
 
   async scanFile(owner: string, repo: string, filePath: string, token: string): Promise<string[]> {
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`
+    const url = `${this.baseUrl}/${owner}/${repo}/contents/${filePath}`
     const response = await fetch(url, {
       headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3.raw' },
     })
@@ -119,6 +120,27 @@ class GithubService {
     const matches = content.match(this.AWS_KEY_REGEX)
 
     return matches ? matches.map(match => `${filePath}: ${match}`) : []
+  }
+
+  async getBranches(owner: string, repo: string, token: string): Promise<GitHubBranchesResponseDto> {
+    const url = `${this.baseUrl}/repos/${owner}/${repo}/branches`
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      })
+      const data = await response.json()
+      const branches: String[] = data.map((branch: { name: String }) => branch.name)
+      return { branches }
+    } catch (error) {
+      throw new Error(`Failed to fetch branches. error: ${error.message}`)
+    }
+  }
+
+  async getBranchCommits(owner: string, repo: string, token: string, branch: string) {
+    const url = `${this.baseUrl}/repos/${owner}/${repo}/branches`
   }
 }
 
