@@ -21,7 +21,7 @@ class GithubService {
           Accept: 'application/vnd.github.v3+json',
         },
       }
-      const response = await fetch('https://api/github.com/user', requestData)
+      const response = await fetch(`${this.baseUrl}/user`, requestData)
 
       if (response.ok) {
         const user = await response.json()
@@ -122,7 +122,7 @@ class GithubService {
     return matches ? matches.map(match => `${filePath}: ${match}`) : []
   }
 
-  async getBranches(owner: string, repo: string, token: string): Promise<GitHubBranchesResponseDto> {
+  async getBranches(owner: String, repo: String, token: String): Promise<GitHubBranchesResponseDto> {
     const url = `${this.baseUrl}/repos/${owner}/${repo}/branches`
     try {
       const response = await fetch(url, {
@@ -131,16 +131,16 @@ class GithubService {
           Accept: 'application/vnd.github.v3+json',
         },
       })
+      if (!response.ok) {
+        throw new Error(`Failed to fetch branches. { status: ${response.status} message: ${response.statusText}}`)
+      }
+
       const data = await response.json()
       const branches: String[] = data.map((branch: { name: String }) => branch.name)
       return { branches }
     } catch (error) {
       throw new Error(`Failed to fetch branches. error: ${error.message}`)
     }
-  }
-
-  async getBranchCommits(owner: string, repo: string, token: string, branch: string) {
-    const url = `${this.baseUrl}/repos/${owner}/${repo}/branches`
   }
 }
 

@@ -1,6 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common'
+import { Body, Controller, Param, Post, Query } from '@nestjs/common'
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { GitHubRepoAccessRequestDto, GitHubRepoAccessResponseDto, GitHubRepoScanResponseDto } from './dto/github.dto'
+import { GitHubRepoAccessRequestDto, GitHubRepoAccessResponseDto, GitHubRepoScanResponseDto, GitHubTokenValidateRequestDto } from './dto/github.dto'
 import { GithubService } from './github.service'
 
 @Controller('github')
@@ -8,31 +8,34 @@ import { GithubService } from './github.service'
 class GithubController {
   constructor(private readonly service: GithubService) {}
 
-  // @Post('validate-token')
-  // @ApiBody({ type: GitHubTokenValidateRequestDto })
-  // async validateToken(@Body() body: GitHubTokenValidateRequestDto): Promise<GitHubTokenValidateResponseDto> {
-  //   return this.service.validateToken(body.token)
-  // }
+  @Post('validate-token')
+  @ApiBody({ type: GitHubTokenValidateRequestDto })
+  async validateToken(@Body() body: GitHubTokenValidateRequestDto): Promise<any> {
+    return this.service.validateToken(body.token)
+  }
 
   @Post('check-repo-access')
-  @ApiBody({ type: GitHubRepoAccessRequestDto })
+  // @ApiBody({ type: GitHubRepoAccessRequestDto })
   @ApiResponse({ status: 200, type: GitHubRepoAccessResponseDto })
-  async checkRepoAccess(@Body() body: GitHubRepoAccessRequestDto): Promise<GitHubRepoAccessResponseDto> {
-    return this.service.checkRepoAccess(body.token, body.owner, body.repo)
+  async checkRepoAccess(
+    @Query('owner') owner: string,
+    @Query('repo') repo: string,
+    @Param('token') token: string,
+  ): Promise<GitHubRepoAccessResponseDto> {
+    return this.service.checkRepoAccess(token, owner, repo)
   }
 
   @Post('scan-repo')
-  @ApiBody({ type: GitHubRepoAccessRequestDto })
   @ApiResponse({ status: 200, type: GitHubRepoScanResponseDto })
-  async scanRepo(@Body() body: GitHubRepoAccessRequestDto): Promise<GitHubRepoScanResponseDto> {
-    return this.service.scanRepo(body.owner, body.repo, body.token)
+  async scanRepo(@Query('owner') owner: string, @Query('repo') repo: string, @Param('token') token: string): Promise<GitHubRepoScanResponseDto> {
+    return this.service.scanRepo(owner, repo, token)
   }
 
-  @Post('get-branches')
+  @Post('branches')
   @ApiBody({ type: GitHubRepoAccessRequestDto })
   @ApiResponse({ status: 200, type: GitHubRepoScanResponseDto })
-  async getBranches(@Body() body: GitHubRepoAccessRequestDto) {
-    return this.service.getBranches(body.owner, body.repo, body.token)
+  async getBranches(@Query('owner') owner: string, @Query('repo') repo: string, @Body() body: GitHubRepoAccessRequestDto) {
+    return this.service.getBranches(owner, repo, body.token)
   }
 }
 
